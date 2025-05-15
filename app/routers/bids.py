@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from .. import schemas, models, database, utils
+from .. import schemas, models, database
+from ..utils import dependencies as deps
 
 router = APIRouter(prefix="/bids", tags=["bids"])
 
 
-@router.post("/", response_model=schemas.BidResponse)
+@router.post("/", response_model=schemas.BidResponse, status_code=201)
 def create_bid(
         bid: schemas.BidCreate,
         db: Session = Depends(database.get_db),
-        current_user: models.User = Depends(utils.get_current_user)
+        current_user: models.User = Depends(deps.get_current_user)
 ):
     lot = db.query(models.Lot).get(bid.lot_id)
     if not lot:
@@ -21,7 +22,9 @@ def create_bid(
     new_bid = models.Bid(
         amount=bid.amount,
         user_id=current_user.id,
-        lot_id=bid.lot_id
+        lot_id=bid.lot_id,
+        is_proxy=bid.is_proxy,
+        max_bid=bid.max_bid if bid.is_proxy else None
     )
 
     lot.current_price = bid.amount

@@ -1,0 +1,28 @@
+************* Module app.config
+app/config.py:16:0: C0301: Line too long (109/100) (line-too-long)
+************* Module app.models
+app/models.py:32:23: E1102: func.now is not callable (not-callable)
+app/models.py:3:0: C0411: standard import "datetime.datetime" should be placed before third party imports "sqlalchemy.Column", "sqlalchemy.orm.relationship" (wrong-import-order)
+************* Module app.database
+app/database.py:57:0: C0304: Final newline missing (missing-final-newline)
+************* Module app.schemas
+app/schemas.py:68:4: E0213: Method 'validate_max_bid' should have "self" as first argument (no-self-argument)
+************* Module app.routers.lots
+app/routers/lots.py:15:0: C0301: Line too long (105/100) (line-too-long)
+app/routers/lots.py:22:8: W0707: Consider explicitly re-raising using 'raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f'Database error: {str(e)}') from e' (raise-missing-from)
+app/routers/lots.py:25:8: W0707: Consider explicitly re-raising using 'raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e)) from e' (raise-missing-from)
+app/routers/lots.py:37:8: W0707: Consider explicitly re-raising using 'raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f'Database error: {str(e)}') from e' (raise-missing-from)
+app/routers/lots.py:48:8: W0707: Consider explicitly re-raising using 'raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f'Database error: {str(e)}') from e' (raise-missing-from)
+app/routers/lots.py:66:8: W0707: Consider explicitly re-raising using 'raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f'Database error: {str(e)}') from e' (raise-missing-from)
+************* Module app.utils.security
+app/utils/security.py:2:0: W0611: Unused JWTError imported from jose (unused-import)
+************* Module app.utils.__init__
+app/utils/__init__.py:3:0: C0304: Final newline missing (missing-final-newline)
+************* Module app.utils.dependencies
+app/utils/dependencies.py:26:8: W0707: Consider explicitly re-raising using 'except JWTError as exc' and 'raise credentials_exception from exc' (raise-missing-from)
+************* Module app.services.proxy
+app/services/proxy.py:18:21: C0121: Comparison 'models.Bid.is_proxy == True' should be 'models.Bid.is_proxy is True' if checking for the singleton value True, or 'bool(models.Bid.is_proxy)' if testing for truthiness (singleton-comparison)
+
+------------------------------------------------------------------
+Your code has been rated at 9.25/10 (previous run: 9.22/10, +0.03)
+

@@ -8,7 +8,9 @@ from ..utils import dependencies as deps
 router = APIRouter(prefix="/lots", tags=["Lots"])
 
 @router.post("/", response_model=schemas.LotResponse, status_code=status.HTTP_201_CREATED)
-def create_lot(lot: schemas.LotCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(deps.get_current_user)):
+def create_lot(lot: schemas.LotCreate,
+               db: Session = Depends(database.get_db),
+               current_user: models.User = Depends(deps.get_current_user)):
     try:
         new_lot = models.Lot(**lot.model_dump(), owner_id=current_user.id, current_price=lot.start_price)
         db.add(new_lot)
@@ -17,19 +19,23 @@ def create_lot(lot: schemas.LotCreate, db: Session = Depends(database.get_db), c
         return new_lot
     except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Database error: {str(e)}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            f"Database error: {str(e)}")
     except Exception as e:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
 
 @router.get("/", response_model=list[schemas.LotResponse])
-def get_lots(skip: int = 0, limit: int = 100, active_only: bool = True, db: Session = Depends(database.get_db)):
+def get_lots(skip: int = 0,
+             limit: int = 100, active_only: bool = True,
+             db: Session = Depends(database.get_db)):
     try:
         query = db.query(models.Lot)
         if active_only:
             query = query.filter(models.Lot.end_time > datetime.utcnow())
         return query.order_by(models.Lot.created_at.desc()).offset(skip).limit(limit).all()
     except SQLAlchemyError as e:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Database error: {str(e)}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            f"Database error: {str(e)}")
 
 @router.get("/{lot_id}", response_model=schemas.LotResponse)
 def get_lot(lot_id: int, db: Session = Depends(database.get_db)):
@@ -39,10 +45,13 @@ def get_lot(lot_id: int, db: Session = Depends(database.get_db)):
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Lot not found")
         return lot
     except SQLAlchemyError as e:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Database error: {str(e)}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            f"Database error: {str(e)}")
 
 @router.delete("/{lot_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_lot(lot_id: int, db: Session = Depends(database.get_db), current_user: models.User = Depends(deps.get_current_user)):
+def delete_lot(lot_id: int,
+               db: Session = Depends(database.get_db),
+               current_user: models.User = Depends(deps.get_current_user)):
     try:
         lot = db.query(models.Lot).get(lot_id)
         if not lot:
@@ -55,3 +64,38 @@ def delete_lot(lot_id: int, db: Session = Depends(database.get_db), current_user
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Database error: {str(e)}")
+
+@router.patch("/{lot_id}", response_model=schemas.LotResponse)
+def update_lot(
+        lot_id: int,
+        lot: schemas.LotCreate,
+        db: Session = Depends(database.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+):
+    db_lot = db.query(models.Lot).get(lot_id)
+    if not db_lot:
+        raise HTTPException(status_code=404, detail="Lot not found")
+
+    if db_lot.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this lot")
+
+    for key, value in lot.model_dump().items():
+        setattr(db_lot, key, value)
+
+    db.commit()
+    db.refresh(db_lot)
+    return db_lot
+
+
+@router.get("/{lot_id}/bids", response_model=schemas.BidListResponse)
+def get_bids_for_lot(
+        lot_id: int,
+        db: Session = Depends(database.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+):
+    db_lot = db.query(models.Lot).get(lot_id)
+    if not db_lot:
+        raise HTTPException(status_code=404, detail="Lot not found")
+
+    bids = db.query(models.Bid).filter(models.Bid.lot_id == lot_id).all()
+    return {"bids": bids, "count": len(bids)}
