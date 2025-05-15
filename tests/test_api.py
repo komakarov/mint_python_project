@@ -274,6 +274,7 @@ def test_create_bid():
     )
     lot_id = lot_response.json()["id"]
 
+
     response = client.post(
         "/bids/",
         json={
