@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from .. import schemas, models, database
 from ..utils import dependencies as deps
+from ..services.proxy import process_proxy_bids
 
 router = APIRouter(prefix="/bids", tags=["bids"])
 
@@ -32,4 +33,10 @@ def create_bid(
     db.add(new_bid)
     db.commit()
     db.refresh(new_bid)
+
+    try:
+        process_proxy_bids(bid.lot_id, db)
+    except Exception as e:
+        print(f"Error processing proxy bids: {e}")
+
     return new_bid

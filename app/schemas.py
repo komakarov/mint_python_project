@@ -5,8 +5,6 @@ from pydantic import BaseModel, Field, validator
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: str = Field(..., pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
-    first_name: Optional[str] = Field(None, max_length=50)
-    last_name: Optional[str] = Field(None, max_length=50)
 
     class Config:
         orm_mode = True

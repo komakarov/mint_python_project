@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from .. import schemas, models, database
-from ..database import get_password_hash  # Импорт напрямую
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -11,18 +10,19 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already exists")
 
+
     db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user_email:
         raise HTTPException(status_code=400, detail="Email already exists")
 
+
     hashed_password = database.get_password_hash(user.password)
+
 
     new_user = models.User(
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
-        first_name=user.first_name,
-        last_name=user.last_name,
         is_active=True
     )
 
